@@ -1,0 +1,10 @@
+version: '2.1'
+
+services:
+  cliente:
+    image: ubuntu
+    container_name: ubuntu-cliente
+    build: .
+    ports:
+      - 3000:3000
+    tty: true

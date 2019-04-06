@@ -1,0 +1,10 @@
+version: '2.1'
+
+services:
+  servidor:
+    image: ubuntu
+    container_name: ubuntu-servidor
+    build: .
+    ports:
+      - 3001:3001
+    tty: true
