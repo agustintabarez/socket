@@ -53,7 +53,8 @@ int main(int argc, char const *argv[])
     fprintf(stderr, "No pudo obtener la direccion de %s\n", clienteHost);
     return 0;
   }
-  // Asigna ip del cliente a la direccion del cliente
+
+  /* Asigna ip del cliente a la direccion del cliente */
   memcpy((void *)&remaddr.sin_addr, hostCliente->h_addr_list[0], hostCliente->h_length);
   printf("Bind realizado con exito. Numero de puerto = %d\n", ntohs(myaddr.sin_port));
 
