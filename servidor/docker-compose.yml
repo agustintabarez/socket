@@ -4,9 +4,9 @@ services:
   servidor:
     image: ubuntu
     container_name: ubuntu-servidor
-    working_dir: /usr/src/cliente
+    working_dir: /usr/src/servidor
     volumes:
-      - .:/usr/src/cliente
+      - .:/usr/src/servidor
     build: .
     ports:
       - 3001:3001
