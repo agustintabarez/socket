@@ -6,16 +6,16 @@
 
 #define PUERTO_CLIENTE 3000
 #define PUERTO_SERVIDOR 3001
-#define TAMANO_BUFFER 2048
+#define TAMANO_BUFFER 10
+#define TAMANO_MENSAJE 100
 
-main(int argc, char **argv)
+int main(int argc, char **argv)
 {
   struct sockaddr_in myaddr, remaddr;  /* Direccion servidor y cliente */
   socklen_t addrlen = sizeof(remaddr); /* Tamano de las direcciones */
   int recvlen;                         /* Bytes recibidos por paquete */
   int fd;                              /* Defino socket */
-  int cantidadMensajesRecibidos = 0;   /* Cantidad de mensajes recibidos */
-  char buf[TAMANO_BUFFER];           
+  char buf[TAMANO_BUFFER];
 
   /* Creo socket UDP */
   if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
@@ -40,19 +40,27 @@ main(int argc, char **argv)
   {
     printf("Esperando en puerto %d\n", PUERTO_CLIENTE);
     recvlen = recvfrom(fd, buf, TAMANO_BUFFER, 0, (struct sockaddr *)&remaddr, &addrlen);
-    printf("Recibio %d bytes\n", recvlen);
+    printf("Recibio mensaje - %d bytes\n", recvlen);
     if (recvlen > 0)
     {
       buf[recvlen] = 0; /* Agrega 0 a la ultima posicion del string para finalizarlo */
-      printf("Mensaje recibido: \"%s\"\n", buf);
+      char *id;
+      char *mensaje;
+      mensaje = strtok(buf, "-");
+      id = strtok(NULL, " , ");
+      printf("Id: %s\n", id);
+      printf("Mensaje recibido: \"%s\"\n", mensaje);
+      // Envio id del mensaje recibido como confirmación
+      printf("Enviando confirmación del mensaje recibido\n");
+      sprintf(buf, "%s", id);
+      if (sendto(fd, buf, strlen(buf), 0, (struct sockaddr *)&remaddr, addrlen) < 0)
+      {
+        perror("Error al enviar respuesta - sendto");
+      }
     }
     else
     {
       printf("Error ocurrio al leer contenido del paquete\n");
     }
-    sprintf(buf, "ack %d", cantidadMensajesRecibidos++);
-    printf("Enviando respuesta \"%s\"\n", buf);
-    if (sendto(fd, buf, strlen(buf), 0, (struct sockaddr *)&remaddr, addrlen) < 0)
-      perror("Error al enviar respuesta (sendto)");
   }
 }

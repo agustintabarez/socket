@@ -13,7 +13,8 @@ using namespace std;
 
 #define PUERTO_CLIENTE 3000
 #define PUERTO_SERVIDOR 3001
-#define BUFLEN 2048
+#define TAMANO_BUFFER 2048
+#define TAMANO_MENSAJE 100
 
 int main(int argc, char const *argv[])
 {
@@ -21,8 +22,8 @@ int main(int argc, char const *argv[])
   socklen_t addrlen = sizeof(remaddr);  /* Tamano de las direcciones */
   int fd, slen = sizeof(remaddr);       /* Defino socker y tamano de la direccion del cliente */
   struct hostent *hostCliente;          /* Informacion del host del servidor */
-  char *clienteHost = "ubuntu-cliente"; /* Nombre del host cual lo identificara por DNS */
-  char buf[BUFLEN];
+  const char *clienteHost = "ubuntu-cliente"; /* Nombre del host cual lo identificara por DNS */
+  char buf[TAMANO_BUFFER];
 
   /* Creo socket UDP */
   if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
@@ -58,21 +59,25 @@ int main(int argc, char const *argv[])
   memcpy((void *)&remaddr.sin_addr, hostCliente->h_addr_list[0], hostCliente->h_length);
   printf("Bind realizado con exito. Numero de puerto = %d\n", ntohs(myaddr.sin_port));
 
-  for (int i = 0; i < 3; i++)
+  for (int i = 1; i <= 3; i++)
   {
-    printf("Enviando paquete %d to %s puerto %d\n", i, clienteHost, PUERTO_CLIENTE);
-    sprintf(buf, "Este es el paquete %d", i);
+    printf("Enviando paquete id: %d a %s puerto %d\n", i, clienteHost, PUERTO_CLIENTE);
+    // TODO: obtener mensajes a enviar de archivo
+    char mensaje[TAMANO_MENSAJE] = "Mensaje";
+    // Apendeo ID al mensaje
+    strcat(mensaje, "-%d");
+    sprintf(buf, mensaje, i);
     if (sendto(fd, buf, strlen(buf), 0, (struct sockaddr *)&remaddr, slen) == -1)
     {
-      perror("Error al enviar paquete (sendto)");
+      perror("Error al enviar paquete - sendto");
       exit(1);
     }
     /* Espera a recibir ack del servidor */
-    int recvlen = recvfrom(fd, buf, BUFLEN, 0, (struct sockaddr *)&remaddr, &addrlen);
+    int recvlen = recvfrom(fd, buf, TAMANO_BUFFER, 0, (struct sockaddr *)&remaddr, &addrlen);
     if (recvlen >= 0)
     {
       buf[recvlen] = 0; /* Agrega 0 a la ultima posicion del string para finalizarlo */
-      printf("Mensaje recibido: \"%s\"\n", buf);
+      printf("Confirmación del mensaje con id: \"%s\"\n", buf);
     }
   }
   close(fd);
