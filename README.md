@@ -30,7 +30,7 @@
     ```
     docker network connect red-local ubuntu-servidor
     ```
-- Abrir dos consolas una para el servidor (1) y otra para el cliente (2)
+- Abrir dos consolas una para el servidor (i) y otra para el cliente (ii)
     1. Acceder al cmd del ubuntu-servidor desde la consola del servidor:
         ```                                  
         docker exec -it ubuntu-servidor /bin/bash
@@ -39,3 +39,13 @@
         ```
         docker exec -it ubuntu-cliente /bin/bash
         ```
+- Posibles errores:
+    - Error al crear bind: Address already in use
+        - Buscar PID del proceso usando dicho puerto
+          ```
+          ps
+          ```
+        - Matar dicho proceso
+          ```
+          kill -9 PID
+          ```
