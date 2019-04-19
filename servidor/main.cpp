@@ -1,3 +1,4 @@
+#include "./nodos/MensajeEnviado/MensajeEnviado.h"
 #include <iostream>
 #include <stdlib.h>
 #include <stdio.h>
@@ -18,10 +19,10 @@ using namespace std;
 
 int main(int argc, char const *argv[])
 {
-  struct sockaddr_in myaddr, remaddr;   /* Direccion servidor y cliente */
-  socklen_t addrlen = sizeof(remaddr);  /* Tamano de las direcciones */
-  int fd, slen = sizeof(remaddr);       /* Defino socker y tamano de la direccion del cliente */
-  struct hostent *hostCliente;          /* Informacion del host del servidor */
+  struct sockaddr_in myaddr, remaddr;         /* Direccion servidor y cliente */
+  socklen_t addrlen = sizeof(remaddr);        /* Tamano de las direcciones */
+  int fd, slen = sizeof(remaddr);             /* Defino socker y tamano de la direccion del cliente */
+  struct hostent *hostCliente;                /* Informacion del host del servidor */
   const char *clienteHost = "ubuntu-cliente"; /* Nombre del host cual lo identificara por DNS */
   char buf[TAMANO_BUFFER];
 
@@ -57,29 +58,46 @@ int main(int argc, char const *argv[])
 
   /* Asigna ip del cliente a la direccion del cliente */
   memcpy((void *)&remaddr.sin_addr, hostCliente->h_addr_list[0], hostCliente->h_length);
-  printf("Bind realizado con exito. Numero de puerto = %d\n", ntohs(myaddr.sin_port));
+  printf("Bind realizado con exito\n");
+  printf("Numero de puerto del ubuntu-servidor = %d\n", ntohs(myaddr.sin_port));
+  printf("-------------------------------------------------\n");
+
+  /* Primer mensaje enviado apunta a NULL */
+  mensajeEnviado primerMensajeEnviado = crearMensajeEnviado();
 
   for (int i = 1; i <= 3; i++)
   {
+    int idDelMensajeAEnviar = i;
     printf("Enviando paquete id: %d a %s puerto %d\n", i, clienteHost, PUERTO_CLIENTE);
-    // TODO: obtener mensajes a enviar de archivo
+    /* Obtener mensajes a enviar de archivo */
     char mensaje[TAMANO_MENSAJE] = "Mensaje";
-    // Apendeo ID al mensaje
+    mensajeEnviado me = crearMensajeEnviado(idDelMensajeAEnviar, mensaje);
+    /* Apendeo ID al mensaje */
     strcat(mensaje, "-%d");
-    sprintf(buf, mensaje, i);
+    sprintf(buf, mensaje, idDelMensajeAEnviar);
     if (sendto(fd, buf, strlen(buf), 0, (struct sockaddr *)&remaddr, slen) == -1)
     {
       perror("Error al enviar paquete - sendto");
       exit(1);
     }
-    /* Espera a recibir ack del servidor */
-    int recvlen = recvfrom(fd, buf, TAMANO_BUFFER, 0, (struct sockaddr *)&remaddr, &addrlen);
-    if (recvlen >= 0)
+    primerMensajeEnviado = agregarMensajeEnviado(primerMensajeEnviado, me);
+    bool mensajeEnviadoFueRecibido = false;
+    while (!mensajeEnviadoFueRecibido)
     {
-      buf[recvlen] = 0; /* Agrega 0 a la ultima posicion del string para finalizarlo */
-      printf("Confirmación del mensaje con id: \"%s\"\n", buf);
+      printf("Esperando recibir confirmación de mensajes...\n");
+      /* Espera a recibir el id del mensaje que recibio el cliente */
+      int recvlen = recvfrom(fd, buf, TAMANO_BUFFER, 0, (struct sockaddr *)&remaddr, &addrlen);
+      if (recvlen >= 0)
+      {
+        buf[recvlen] = 0; /* Agrega 0 a la ultima posicion del string para finalizarlo */
+        int idDelMensajeRecibido = atoi(buf);
+        primerMensajeEnviado = marcarMensajeEnviadoComoConfirmado(primerMensajeEnviado, idDelMensajeRecibido);
+        if(idDelMensajeRecibido == idDelMensajeAEnviar) mensajeEnviadoFueRecibido = true;
+        printf("Confirmación del mensaje con id: %s\n", buf);
+      }
     }
   }
+  mostrarMensajesEnviados(primerMensajeEnviado);
   close(fd);
   return 0;
 }
