@@ -15,8 +15,6 @@ using namespace std;
 
 #define PUERTO_CLIENTE 3000
 #define PUERTO_SERVIDOR 3001
-#define TAMANO_BUFFER 2048
-#define TAMANO_MENSAJE 100
 #define NOMBRE_ARCHIVO_MENSAJES "mensajes.txt"
 
 int main(int argc, char const *argv[])
@@ -26,7 +24,7 @@ int main(int argc, char const *argv[])
   int fd, slen = sizeof(remaddr);             /* Defino socker y tamano de la direccion del cliente */
   struct hostent *hostCliente;                /* Informacion del host del servidor */
   const char *clienteHost = "ubuntu-cliente"; /* Nombre del host cual lo identificara por DNS */
-  char buf[TAMANO_BUFFER];
+  char bufferMensaje[TAMANO_MENSAJE];
 
   /* Creo socket UDP */
   if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
@@ -78,8 +76,8 @@ int main(int argc, char const *argv[])
     mensajeEnviado me = crearMensajeEnviado(idDelMensajeAEnviar, mensaje);
     /* Apendeo ID al mensaje */
     strcat(mensaje, "-%d");
-    sprintf(buf, mensaje, idDelMensajeAEnviar);
-    if (sendto(fd, buf, strlen(buf), 0, (struct sockaddr *)&remaddr, slen) == -1)
+    sprintf(bufferMensaje, mensaje, idDelMensajeAEnviar);
+    if (sendto(fd, bufferMensaje, strlen(bufferMensaje), 0, (struct sockaddr *)&remaddr, slen) == -1)
     {
       perror("Error al enviar paquete - sendto");
       exit(1);
@@ -89,11 +87,11 @@ int main(int argc, char const *argv[])
     while (!mensajeEnviadoFueRecibido)
     {
       /* Espera a recibir el id del mensaje que recibio el cliente */
-      int recvlen = recvfrom(fd, buf, TAMANO_BUFFER, 0, (struct sockaddr *)&remaddr, &addrlen);
+      int recvlen = recvfrom(fd, bufferMensaje, TAMANO_MENSAJE, 0, (struct sockaddr *)&remaddr, &addrlen);
       if (recvlen >= 0)
       {
-        buf[recvlen] = 0; /* Agrega 0 a la ultima posicion del string para finalizarlo */
-        int idDelMensajeRecibido = atoi(buf);
+        bufferMensaje[recvlen] = 0; /* Agrega 0 a la ultima posicion del string para finalizarlo */
+        int idDelMensajeRecibido = atoi(bufferMensaje);
         if(idDelMensajeRecibido == idDelMensajeAEnviar)
         {
           mensajeEnviadoFueRecibido = true;
@@ -102,8 +100,8 @@ int main(int argc, char const *argv[])
         {
           /* Cada vez que recibe un id de mensaje que no era el que esperaba */
           /* Vuelve a enviar el mensaje de nuevo */
-          sprintf(buf, mensaje, idDelMensajeAEnviar);
-          if (sendto(fd, buf, strlen(buf), 0, (struct sockaddr *)&remaddr, slen) == -1)
+          sprintf(bufferMensaje, mensaje, idDelMensajeAEnviar);
+          if (sendto(fd, bufferMensaje, strlen(bufferMensaje), 0, (struct sockaddr *)&remaddr, slen) == -1)
           {
             perror("Error al enviar paquete - sendto");
             exit(1);

@@ -1,6 +1,6 @@
 #ifndef MensajeEnviado
 #define MensajeEnviado
-#define TAMANO_MENSAJE 100
+#define TAMANO_MENSAJE 2048 
 
 typedef struct nodoMensajeEnviado *mensajeEnviado;
 
