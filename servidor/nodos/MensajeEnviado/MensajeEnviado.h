@@ -42,4 +42,7 @@ void mostrarMensajesEnviados(mensajeEnviado me);
 mensajeEnviado marcarMensajeEnviadoComoConfirmado(mensajeEnviado primerMensajeEnviado, int id);
 // Marcar mensaje enviado como confirmado
 
+bool mensajeEnviadoFueYaConfirmado(mensajeEnviado primerMensajeEnviado, int id);
+// Retorna true si el mensaje enviado fue confirmado, de lo contrario retorna false
+
 #endif

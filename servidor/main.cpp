@@ -60,7 +60,7 @@ int main(int argc, char const *argv[])
   memcpy((void *)&remaddr.sin_addr, hostCliente->h_addr_list[0], hostCliente->h_length);
   printf("Bind realizado con exito\n");
   printf("Numero de puerto del ubuntu-servidor = %d\n", ntohs(myaddr.sin_port));
-  printf("-------------------------------------------------\n");
+  printf("-------------------------------------------\n");
 
   /* Primer mensaje enviado apunta a NULL */
   mensajeEnviado primerMensajeEnviado = crearMensajeEnviado();
@@ -84,20 +84,36 @@ int main(int argc, char const *argv[])
     bool mensajeEnviadoFueRecibido = false;
     while (!mensajeEnviadoFueRecibido)
     {
-      printf("Esperando recibir confirmación de mensajes...\n");
       /* Espera a recibir el id del mensaje que recibio el cliente */
       int recvlen = recvfrom(fd, buf, TAMANO_BUFFER, 0, (struct sockaddr *)&remaddr, &addrlen);
       if (recvlen >= 0)
       {
         buf[recvlen] = 0; /* Agrega 0 a la ultima posicion del string para finalizarlo */
         int idDelMensajeRecibido = atoi(buf);
-        primerMensajeEnviado = marcarMensajeEnviadoComoConfirmado(primerMensajeEnviado, idDelMensajeRecibido);
-        if(idDelMensajeRecibido == idDelMensajeAEnviar) mensajeEnviadoFueRecibido = true;
-        printf("Confirmación del mensaje con id: %s\n", buf);
+        if(idDelMensajeRecibido == idDelMensajeAEnviar)
+        {
+          mensajeEnviadoFueRecibido = true;
+        } 
+        else
+        {
+          /* Cada vez que recibe un id de mensaje que no era el que esperaba */
+          /* Vuelve a enviar el mensaje de nuevo */
+          sprintf(buf, mensaje, idDelMensajeAEnviar);
+          if (sendto(fd, buf, strlen(buf), 0, (struct sockaddr *)&remaddr, slen) == -1)
+          {
+            perror("Error al enviar paquete - sendto");
+            exit(1);
+          }
+        }
+        if(!mensajeEnviadoFueYaConfirmado(primerMensajeEnviado, idDelMensajeRecibido))
+        {
+          primerMensajeEnviado = marcarMensajeEnviadoComoConfirmado(primerMensajeEnviado, idDelMensajeRecibido);
+          printf("Confirmación del mensaje con id: %d\n", idDelMensajeRecibido);
+        }
       }
     }
   }
-  mostrarMensajesEnviados(primerMensajeEnviado);
   close(fd);
+  mostrarMensajesEnviados(primerMensajeEnviado);
   return 0;
 }

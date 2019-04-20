@@ -96,3 +96,19 @@ mensajeEnviado marcarMensajeEnviadoComoConfirmado(mensajeEnviado primerMensajeEn
         return aux;
     }
 }
+
+bool mensajeEnviadoFueYaConfirmado(mensajeEnviado primerMensajeEnviado, int id)
+{
+    if(primerMensajeEnviado == NULL)
+    {
+        /* Llego un id de mensaje que nunca fue enviado */
+        return true;
+    }
+    else if(primerMensajeEnviado->id == id)
+    {
+        return primerMensajeEnviado->fueConfirmado;
+    } else 
+    {
+        return mensajeEnviadoFueYaConfirmado(tailMensajeEnviado(primerMensajeEnviado), id);
+    }
+}
