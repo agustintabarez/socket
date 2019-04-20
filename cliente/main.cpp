@@ -7,8 +7,7 @@
 
 #define PUERTO_CLIENTE 3000
 #define PUERTO_SERVIDOR 3001
-#define TAMANO_BUFFER 10
-#define TAMANO_MENSAJE 100
+#define TAMANO_MENSAJE 2048
 
 void mostrarEsperandoEnPuerto();
 void mostrarMensajeRecibido(char *id, char *mensaje, int bytes);
@@ -19,13 +18,22 @@ int main(int argc, char **argv)
   socklen_t addrlen = sizeof(remaddr); /* Tamano de las direcciones */
   int recvlen;                         /* Bytes recibidos por paquete */
   int fd;                              /* Defino socket */
-  char buf[TAMANO_BUFFER];
+  char bufferMensaje[TAMANO_MENSAJE];
 
   /* Creo socket UDP */
   if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
   {
     perror("Error al crear socket\n");
     return 0;
+  }
+
+  /* Establecer timeout al socket */
+  struct timeval tv;
+  tv.tv_sec = 5;
+  tv.tv_usec = 0;
+  if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof tv))
+  {
+    perror("Error al establecer timeout al socket - setsockopt");
   }
 
   /* Relaciono socket al puerto del cliente */
@@ -46,13 +54,13 @@ int main(int argc, char **argv)
   mostrarEsperandoEnPuerto();
   while (true)
   {
-    recvlen = recvfrom(fd, buf, TAMANO_BUFFER, 0, (struct sockaddr *)&remaddr, &addrlen);
+    recvlen = recvfrom(fd, bufferMensaje, TAMANO_MENSAJE, 0, (struct sockaddr *)&remaddr, &addrlen);
     if (recvlen > 0)
     {
-      buf[recvlen] = 0; /* Agrega 0 a la ultima posicion del string para finalizarlo */
+      bufferMensaje[recvlen] = 0; /* Agrega 0 a la ultima posicion del string para finalizarlo */
       char *id;
       char *mensaje;
-      mensaje = strtok(buf, "-");
+      mensaje = strtok(bufferMensaje, "-");
       id = strtok(NULL, " , ");
       if (!mensajeRecibidoExiste(primerMensajeRecibido, atoi(id)))
       {
@@ -62,15 +70,15 @@ int main(int argc, char **argv)
         mostrarEsperandoEnPuerto();
       }
       // Envio id del mensaje recibido como confirmación
-      sprintf(buf, "%s", id);
-      if (sendto(fd, buf, strlen(buf), 0, (struct sockaddr *)&remaddr, addrlen) < 0)
+      sprintf(bufferMensaje, "%s", id);
+      if (sendto(fd, bufferMensaje, strlen(bufferMensaje), 0, (struct sockaddr *)&remaddr, addrlen) < 0)
       {
         perror("Error al enviar respuesta - sendto");
       }
     }
     else
     {
-      printf("Error ocurrio al leer contenido del paquete\n");
+      printf("Timeout\n");
     }
   }
 }
