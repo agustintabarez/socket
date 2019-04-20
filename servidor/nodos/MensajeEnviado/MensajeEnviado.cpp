@@ -4,31 +4,26 @@
 
 using namespace std;
 
-// Retorna el id del mensaje enviado
 int headId(mensajeEnviado me)
 {
     return me->id;
 }
 
-// Retorna el mensaje del mensaje enviado
 char *headMensaje(mensajeEnviado me)
 {
     return me->mensaje;
 }
 
-// Retorna si el mensaje fue confirmado por el cliente
 bool headFueConfirmado(mensajeEnviado me)
 {
     return me->fueConfirmado;
 }
 
-// Retorna el siguiente mensaje enviado
 mensajeEnviado tailMensajeEnviado(mensajeEnviado me)
 {
     return me->sigMensajeEnviado;
 }
 
-// Retorna true si el mensaje enviado esta vacio, false de lo contrario
 bool estaVacio(mensajeEnviado me)
 {
     return me == NULL;
@@ -50,7 +45,6 @@ mensajeEnviado crearMensajeEnviado(int id, char *mensaje)
     return me;
 }
 
-// Agrega un mensaje enviado a la lista de mensajes enviados
 mensajeEnviado agregarMensajeEnviado(mensajeEnviado primerMensajeEnviado, mensajeEnviado mensajeEnviadoParaAgregar)
 {
     if (estaVacio(primerMensajeEnviado))
@@ -66,7 +60,6 @@ mensajeEnviado agregarMensajeEnviado(mensajeEnviado primerMensajeEnviado, mensaj
     }
 }
 
-// Muestra los mensajes enviados
 void mostrarMensajesEnviados(mensajeEnviado me)
 {
     cout << "Mensajes Enviados" << endl;
@@ -80,7 +73,6 @@ void mostrarMensajesEnviados(mensajeEnviado me)
     }
 }
 
-// Marcar mensaje enviado como confirmado
 mensajeEnviado marcarMensajeEnviadoComoConfirmado(mensajeEnviado primerMensajeEnviado, int id)
 {
     if (estaVacio(primerMensajeEnviado))
