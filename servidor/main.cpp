@@ -9,6 +9,7 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <fstream>
 
 using namespace std;
 
@@ -16,6 +17,7 @@ using namespace std;
 #define PUERTO_SERVIDOR 3001
 #define TAMANO_BUFFER 2048
 #define TAMANO_MENSAJE 100
+#define NOMBRE_ARCHIVO_MENSAJES "mensajes.txt"
 
 int main(int argc, char const *argv[])
 {
@@ -65,12 +67,14 @@ int main(int argc, char const *argv[])
   /* Primer mensaje enviado apunta a NULL */
   mensajeEnviado primerMensajeEnviado = crearMensajeEnviado();
 
-  for (int i = 1; i <= 3; i++)
+  int id = 0;
+  ifstream mensajes(NOMBRE_ARCHIVO_MENSAJES);
+  for (string mensajeDeArchivo; getline(mensajes, mensajeDeArchivo);)
   {
-    int idDelMensajeAEnviar = i;
-    printf("Enviando paquete id: %d a %s puerto %d\n", i, clienteHost, PUERTO_CLIENTE);
-    /* Obtener mensajes a enviar de archivo */
-    char mensaje[TAMANO_MENSAJE] = "Mensaje";
+    int idDelMensajeAEnviar = ++id;
+    printf("Enviando paquete id: %d a %s puerto %d\n", idDelMensajeAEnviar, clienteHost, PUERTO_CLIENTE);
+    char mensaje[TAMANO_MENSAJE];
+    strcpy(mensaje, mensajeDeArchivo.c_str());
     mensajeEnviado me = crearMensajeEnviado(idDelMensajeAEnviar, mensaje);
     /* Apendeo ID al mensaje */
     strcat(mensaje, "-%d");
