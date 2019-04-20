@@ -1,3 +1,4 @@
+#include "./nodos/MensajeRecibido/MensajeRecibido.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -8,6 +9,9 @@
 #define PUERTO_SERVIDOR 3001
 #define TAMANO_BUFFER 10
 #define TAMANO_MENSAJE 100
+
+void mostrarEsperandoEnPuerto();
+void mostrarMensajeRecibido(char *id, char *mensaje, int bytes);
 
 int main(int argc, char **argv)
 {
@@ -36,11 +40,13 @@ int main(int argc, char **argv)
     return 0;
   }
 
+  /* Primer mensaje recibido apunta a NULL */
+  mensajeRecibido primerMensajeRecibido = crearMensajeRecibido();
+
+  mostrarEsperandoEnPuerto();
   while (true)
   {
-    printf("Esperando en puerto %d\n", PUERTO_CLIENTE);
     recvlen = recvfrom(fd, buf, TAMANO_BUFFER, 0, (struct sockaddr *)&remaddr, &addrlen);
-    printf("Recibio mensaje - %d bytes\n", recvlen);
     if (recvlen > 0)
     {
       buf[recvlen] = 0; /* Agrega 0 a la ultima posicion del string para finalizarlo */
@@ -48,10 +54,14 @@ int main(int argc, char **argv)
       char *mensaje;
       mensaje = strtok(buf, "-");
       id = strtok(NULL, " , ");
-      printf("Id: %s\n", id);
-      printf("Mensaje recibido: \"%s\"\n", mensaje);
+      if (!mensajeRecibidoExiste(primerMensajeRecibido, atoi(id)))
+      {
+        mensajeRecibido mr = crearMensajeRecibido(atoi(id));
+        primerMensajeRecibido = agregarMensajeRecibido(primerMensajeRecibido, mr);
+        mostrarMensajeRecibido(id, mensaje, recvlen);
+        mostrarEsperandoEnPuerto();
+      }
       // Envio id del mensaje recibido como confirmación
-      printf("Enviando confirmación del mensaje recibido\n");
       sprintf(buf, "%s", id);
       if (sendto(fd, buf, strlen(buf), 0, (struct sockaddr *)&remaddr, addrlen) < 0)
       {
@@ -63,4 +73,18 @@ int main(int argc, char **argv)
       printf("Error ocurrio al leer contenido del paquete\n");
     }
   }
+}
+
+void mostrarEsperandoEnPuerto()
+{
+  printf("Esperando en puerto %d\n", PUERTO_CLIENTE);
+  printf("------------------------\n");
+}
+
+void mostrarMensajeRecibido(char *id, char *mensaje, int bytes)
+{
+  printf("Mensaje recibido\n");
+  printf("Id: %s\n", id);
+  printf("Mensaje: \"%s\"\n", mensaje);
+  printf("Bytes: %d\n", bytes);
 }
