@@ -41,11 +41,7 @@
         ```
 - Posibles errores:
     - Error al crear bind: Address already in use
-        - Buscar PID del proceso usando dicho puerto
+        - Ejecutar el siguiente comando desde donde ocurrio dicho error (servidor o cliente)
           ```
-          ps
-          ```
-        - Matar dicho proceso
-          ```
-          kill -9 PID
+          make kill
           ```

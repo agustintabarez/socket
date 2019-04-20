@@ -3,3 +3,9 @@ cliente: main.o
 
 main.o: main.cpp
 	g++ -Wall -c main.cpp
+
+clean:
+	rm -rf *o main
+
+kill:
+	pkill -9 cliente

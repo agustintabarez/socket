@@ -9,3 +9,6 @@ MensajeEnviado.o: ./nodos/MensajeEnviado/MensajeEnviado.cpp ./nodos/MensajeEnvia
 
 clean:
 	rm -rf *o main
+
+kill:
+	pkill -9 servidor
