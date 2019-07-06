@@ -69,16 +69,12 @@ int main(int argc, char **argv)
         mostrarMensajeRecibido(id, mensaje, recvlen);
         mostrarEsperandoEnPuerto();
       }
-      // Envio id del mensaje recibido como confirmación
+      /* Envio id del mensaje recibido como confirmación */ 
       sprintf(bufferMensaje, "%s", id);
       if (sendto(fd, bufferMensaje, strlen(bufferMensaje), 0, (struct sockaddr *)&remaddr, addrlen) < 0)
       {
         perror("Error al enviar respuesta - sendto");
       }
-    }
-    else
-    {
-      printf("Timeout\n");
     }
   }
 }
